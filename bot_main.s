@@ -101,9 +101,12 @@ delivery_interrupt:
 	# logic for interrupt:
 	#
 	# int i;
-	# for (i = 0; i < 5; i++)
-	# 	if (puzzles[i] != NULL && !delivered_puzzles[i]) 
+	# for (i = 0; i < 5; i++) {
+	# 	if (puzzles[i] != NULL && !delivered_puzzles[i]) {
 	# 		delivered_puzzles[i] = 1;	
+	# 		break;
+	# 	}
+	# }
 
 	la  $a0, puzzles_received # set flag
 	li  $v0, 1
