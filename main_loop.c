@@ -18,7 +18,7 @@ int main()
 		int i = 0, j = -1;
 		// main_loop_delv_check:
 		while (i < 5) {
-			if (delivered_puzzles[i]) {
+			if (delivered_puzzles[i] == 1) {
 				j = i;
 				break;
 			}
@@ -34,14 +34,18 @@ int main()
 		}
 		// main_find_planet:
 		else {
-			for (i = 0; i < 5; i++) {
+			i = 0;
+			// main_find_planet_loop
+			while (i < 5) {
 				// at this point just find the first planet without a pending request for simplicity. 
 				// can be later be optimized to find the closest planet without a pending request if we have time
-				if (!pending_requests[i]) { 
+				if (pending_requests[i] == 0) { 
 					// request planet info
 					move_to_planet(planets[i]);
 					// request puzzle for planets[i]
 				}
+				// main_find_planet_loop_inc
+				i++;
 			}
 		}
 	}
