@@ -1,7 +1,5 @@
 # syscall constants (none yet, add as needed)
 
-.data
-
 # movement memory-mapped I/O
 VELOCITY             = 0xffff0010
 ANGLE                = 0xffff0014
@@ -44,6 +42,8 @@ str = 0
 solution = 8
 next = 12
 
+.data
+
 .align 2
 planets: .space 120                  # array of planets in the Zuniverse
 pending_requests: .word 0 0 0 0 0    # array indicating planets at which we have a pending puzzle request
@@ -58,11 +58,17 @@ puzzles: .space 40960                # 8192 * 5 --- array of puzzles
 # return: nothing
 main: 
 
+	# enable interrupts
+	li	$t4, DELIVERY_MASK		   # delivery interrupt enable bit
+	or	$t4, $t4, 1		           # global interrupt enable
+	mtc0	 $t4, $12		       # set interrupt mask (Status register)
+
+
 
 
 # interrupt handler ###############################################
 .kdata				           # interrupt handler data (separated just for readability)
-chunkIH:	.space 8	       # space for four registers 
+chunkIH:	.space 12	       # space for three registers 
 	
 non_intrpt_str:	.asciiz "Non-interrupt exception\n"
 unhandled_str:	.asciiz "Unhandled interrupt type\n"
@@ -74,7 +80,8 @@ interrupt_handler:
 .set at
 	la	$k0, chunkIH
 	sw	$a0, 0($k0)		    # Get some free registers                  
-	sw  $v0, 12($k0)   
+	sw  $v0, 4($k0)   
+	sw  $t0, 8($k0)
 
 	mfc0	$k0, $13		# Get Cause register                       
 	srl	$a0, $k0, 2                
@@ -94,26 +101,50 @@ interrupt_dispatch:			# Interrupt:
 	syscall 
 	j	done
 
-# 
+
 delivery_interrupt:
 
-	# TODO:
 	# logic for interrupt:
 	#
 	# int i;
 	# for (i = 0; i < 5; i++) {
-	# 	if (puzzles[i] != NULL && !delivered_puzzles[i]) {
+	# 	if (puzzles[i] != NULL && delivered_puzzles[i] == 0) {
 	# 		delivered_puzzles[i] = 1;	
 	# 		break;
 	# 	}
 	# }
 
-	la  $a0, puzzles_received # set flag
-	li  $v0, 1
-	sw  $v0, 0($a0)
+	li  $v0, 0                          # i
 
-	sw  $v0, DELIVERY_ACKNOWLEDGE
-	j interrupt_dispatch
+	del_int_loop:
+		
+		bge $v0, 5, del_int_loop_done   # !(i < 5)
+		
+		la  $a0, puzzles                # a0 = &puzzles[0]
+		mul $t0, $v0, 8192              # t0 = i * 8192 
+		add $a0, $t0, $a0               # a0 = &puzzles[i]
+		lw  $a0, 0($a0)                 # a0 = puzzles[i]
+		beq $a0, 0, del_int_loop_inc    # puzzles[i] == NULL
+
+		la  $a0, delivered_puzzles      # a0 = &delivered_puzzles[0]
+		mul $t0, $v0, 4                 # t0 = i * 4
+		add $a0, $t0, $a0               # a0 = &delivered_puzzles[i]
+		lw  $a0, 0($a0)                 # a0 = delivered_puzzles[i]
+		bne $a0, 0, del_int_loop_inc    # delivered_puzzles[i] != 0
+
+		li  $t0, 1
+		sw  $t0, 0($a0)                 # delivered_puzzles[i] = 0
+		j   del_int_loop_done           # break;
+
+	del_int_loop_inc:
+		
+		add $v0, $v0, 1                 # i++
+		j   del_int_loop
+
+	del_int_loop_done:
+
+		sw  $v0, DELIVERY_ACKNOWLEDGE
+		j   interrupt_dispatch
 
 non_intrpt:				    # was some non-interrupt
 
@@ -126,8 +157,8 @@ done:
 
 	la	$k0, chunkIH
 	lw	$a0, 0($k0)		    # Restore saved registers
-	lw  $v0, 12($k0)
-	#lw  $t0, 8($k0)
+	lw  $v0, 4($k0)
+	lw  $t0, 8($k0)
 
 .set noat
 	move	$at, $k1		# Restore $at
