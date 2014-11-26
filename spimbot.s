@@ -79,7 +79,6 @@ main_delv_check:
 
 	bge $s0, 5, main_delv_success_check
 
-	# get delivered_puzzles[i]
 	la  $t0, delivered_puzzles       # &delivered_puzzles[0]
 	mul $t1, $s0, 4                  # i * 4
 	add $t0, $t1, $t0                # &delivered_puzzles[i]
@@ -92,6 +91,33 @@ main_delv_check_inc:
 	j   main_delv_check
 
 main_delv_success_check:
+
+	blt $s1, 0, main_find_planet
+	# request planet info
+	# move_to_planet(j)
+	# solve_puzzles(j)
+
+main_find_planet:
+
+	li  $s0, 0 # i = 0
+
+main_find_planet_loop:
+
+	bge $s0, 5, main_loop
+
+	la  $t0, pending_requests              # &pending_requests[0]
+	mul $t1, $s0, 4                        # i * 4
+	add $t0, $t1, $t0                      # &pending_requests[i]
+	lw  $t0, 0($t0)                        # pending_requests[i]
+	bne $t0, 0, main_find_planet_loop_inc  # pending_requests[i] != 0
+
+	# move_to_planet(i)
+	# request planet from planet i
+
+main_find_planet_loop_inc:
+
+	add $s0, $s0, 1 # i++
+	j main_find_planet_loop
 
 # interrupt handler ###############################################
 .kdata				           # interrupt handler data (separated just for readability)
