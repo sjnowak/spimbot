@@ -28,9 +28,8 @@ int main()
 
 		// main_delv_success_check:
 		if (j >= 0) {
-			// request planet info at this point
-			move_to_planet(planets[j]);
-			solve_puzzles(puzzles[j]);
+			move_to_planet(j);
+			solve_puzzles(j);
 		}
 		// main_find_planet:
 		else {
@@ -40,8 +39,7 @@ int main()
 				// at this point just find the first planet without a pending request for simplicity. 
 				// can be later be optimized to find the closest planet without a pending request if we have time
 				if (pending_requests[i] == 0) { 
-					// request planet info
-					move_to_planet(planets[i]);
+					move_to_planet(i);
 					// request puzzle for planets[i]
 				}
 				// main_find_planet_loop_inc
