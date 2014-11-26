@@ -63,8 +63,35 @@ main:
 	or	$t4, $t4, 1		           # global interrupt enable
 	mtc0	 $t4, $12		       # set interrupt mask (Status register)
 
+	# free up some registers
+	sub $sp, $sp, __?
+	sw  $s0, 0($sp)
+	sw  $s1, 4($sp)
+	sw  $s2, 8($sp)
+	sw  $s3, 12($sp)
 
+main_loop:
 
+	li  $s0, 0         # i
+	li  $s1, -1        # j
+
+main_delv_check:
+
+	bge $s0, 5, main_delv_success_check
+
+	# get delivered_puzzles[i]
+	la  $t0, delivered_puzzles       # &delivered_puzzles[0]
+	mul $t1, $s0, 4                  # i * 4
+	add $t0, $t1, $t0                # &delivered_puzzles[i]
+	lw  $t0, 0($t0)                  # delivered_puzzles[i]
+	beq $t0, 0, main_delv_check_inc  # !delivered_puzzles[i]
+
+main_delv_check_inc:
+
+	add $s0, $s0, 1 # i++
+	j   main_delv_check
+
+main_delv_success_check:
 
 # interrupt handler ###############################################
 .kdata				           # interrupt handler data (separated just for readability)
