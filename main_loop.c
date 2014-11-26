@@ -4,6 +4,8 @@
 // 3. If not, find the nearest puzzle without a pending puzzle request and request a puzzle
 
 // C code
+
+// main:
 int main()
 {
 	struct planet_info_t planets[5]; 
@@ -11,27 +13,26 @@ int main()
 	int delivered_puzzles[5];
 	struct node puzzles[5]; // each array entry is a pointer to 8kb of reserved memory
 
-	// initialize our arrays
-	int i;
-	for (i = 0; i < 5; i++) {
-		pending_requests[i] = 0;
-		delivered_puzzles[i] = 0;
-	}
-
+	// main_loop:
 	while (1) {
-		int j = -1;
-		for (i = 0; i < 5; i++) {
+		int i = 0, j = -1;
+		// main_loop_delv_check:
+		while (i < 5) {
 			if (delivered_puzzles[i]) {
 				j = i;
 				break;
 			}
+			// main_loop_delv_inc:
+			i++;
 		}
 
+		// main_delv_success_check:
 		if (j >= 0) {
 			// request planet info at this point
 			move_to_planet(planets[j]);
 			solve_puzzles(puzzles[j]);
 		}
+		// main_find_planet:
 		else {
 			for (i = 0; i < 5; i++) {
 				// at this point just find the first planet without a pending request for simplicity. 
