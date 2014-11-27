@@ -93,9 +93,9 @@ main_delv_check_inc:
 main_delv_success_check:
 
 	blt $s1, 0, main_find_planet
-	# request planet info
-	# move_to_planet(j)
-	# solve_puzzles(j)
+	# request planet info                  # TODO
+	# move_to_planet(j)                    # TODO
+	# solve_puzzles(j)                     # TODO
 
 main_find_planet:
 
@@ -111,8 +111,8 @@ main_find_planet_loop:
 	lw  $t0, 0($t0)                        # pending_requests[i]
 	bne $t0, 0, main_find_planet_loop_inc  # pending_requests[i] != 0
 
-	# move_to_planet(i)
-	# request planet from planet i
+	# move_to_planet(i)                    # TODO
+	# request planet from planet i         # TODO
 
 main_find_planet_loop_inc:
 
