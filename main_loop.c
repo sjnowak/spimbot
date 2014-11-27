@@ -28,21 +28,21 @@ int main()
 
 		// main_delv_success_check:
 		if (j >= 0) {
-			move_to_planet(j);
-			solve_puzzles(j);
+			move_to_planet(j); // TODO
+			solve_puzzles(j);  // TODO
 		}
 		// main_find_planet:
 		else {
 			i = 0;
-			// main_find_planet_loop
+			// main_find_planet_loop:
 			while (i < 5) {
 				// at this point just find the first planet without a pending request for simplicity. 
 				// can be later be optimized to find the closest planet without a pending request if we have time
 				if (pending_requests[i] == 0) { 
-					move_to_planet(i);
-					// request puzzle for planets[i]
+					move_to_planet(i);               // TODO
+					// request puzzle for planets[i] // TODO
 				}
-				// main_find_planet_loop_inc
+				// main_find_planet_loop_inc:
 				i++;
 			}
 		}
