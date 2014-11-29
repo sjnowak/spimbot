@@ -7,11 +7,12 @@ void move_to_planet(int i)
 
 	bot.x_vel = bot_x < p_x ? 10 : -10;
 
+	// mtp_move_x_loop:
 	while (abs(bot.x - p_x) > p_rad - 3); // spin spin
-	// mtp_move_y:
+	// mtp_move_x_done:
 	bot.x_vel = 0;
 	bot.y_vel = bot_y < p_y ? 10 : -10;
-
+	// mtp_move_y_loop:
 	while (abs(bot.y - p_y) > p_rad - 3);
 	// mtp_land:
 	bot.y_vel = 0;
