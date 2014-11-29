@@ -52,6 +52,119 @@ puzzles: .space 40960                # 8192 * 5 --- array of puzzles
 
 .text
 
+# move_to_planet ##################################################
+# 
+# argument $a0: array index of the planet to move to
+# returns       nothing
+
+move_to_planet:
+
+	sub $sp, $sp, 4
+	sw  $ra, 0($sp)
+
+	sw  $0,  TAKEOFF_REQUEST      # take off
+
+	la  $t0, planets
+	sw  $t0, PLANETS_REQUEST      # t0 = &planets[0]
+
+	li  $t1, 24
+	mul $t1, $a0
+
+	add $t0, $t0, $t1             # t0 = &planets[i]
+	lw  $t1, planet_x($t0)
+	lw  $t2, planet_y($t0)
+	lw  $t3, planet_radius($t0)
+	sub $t3, $t3, 3               # p_rad - 3
+	lw  $t4, BOT_X
+
+	li  $t5, 1
+	li  $t6, 10
+
+	bge $t4, $t1, x_check_else
+	sw  $0,  ANGLE
+	sw  $t5, ANGLE_CONTROL
+	j   x_check_done
+
+mtp_x_check_else:
+
+	li  $t7, 180
+	sw  $t7, ANGLE
+	sw  $t5, ANGLE_CONTROL
+
+mtp_x_check_done:
+
+	sw  $t6, VELOCITY
+
+mtp_move_x_loop:
+
+	lw  $t4, BOT_X
+	sub $a0, $t4, $t1
+	jal abs
+	ble $v0, $t3, mtp_move_x_done
+	j mtp_move_x_loop
+
+mtp_move_x_done:
+
+	sw  $0, VELOCITY
+
+	lw  $t4, BOT_Y
+	bge $t4, $t2, mtp_y_check_else
+	li  $t7, 90
+	sw  $t7, ANGLE
+	sw  $t5, ANGLE_CONTROL	
+	j   mtp_y_check_done
+
+mtp_y_check_else:
+
+	li  $t7, 270
+	sw  $t7, ANGLE
+	sw  $t5, ANGLE_CONTROL
+
+mtp_y_check_done:
+
+	sw  $t6, VELOCITY
+
+mtp_move_y_loop:
+
+	lw  $t4, BOT_Y
+	sub $a0, $t4, $t2
+	jal abs
+	ble $v0, $t3, mtp_move_y_done
+	j   mtp_move_y_loop
+
+mtp_move_y_done:
+	
+	sw  $0, VELOCITY
+
+mtp_land_loop:
+
+	sw  $0, LANDING_REQUEST
+	lw  $t0, LANDING_REQUEST
+	bge $t0, $0, mtp_ret
+	j mtp_land_loop
+
+mtp_ret:
+
+	lw  $ra, 0($sp)
+	add $sp, $sp, 4
+
+	jr  $ra
+
+# absolute value ##################################################
+# 
+# argument $a0 value 
+# returns absolute value of $a0
+
+abs:
+
+	move $v0, $a0
+	bge  $v0, $0, abs_ret
+	mul  $v0, $v0, -1
+
+abs_ret:
+
+	jr $ra
+
 # main ############################################################
 #
 # arguments: none
