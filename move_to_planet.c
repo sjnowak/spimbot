@@ -5,16 +5,13 @@ void move_to_planet(int i)
 	int p_x = planets[i].x, p_y = planets[i].y, p_rad = planets[i].radius;
 	int bot_x = bot.x, bot_y = bot.y;
 
-	if (bot_x < p_x) {
+	if (bot_x < p_x) 
 		bot.angle = 0;
-		bot.vel = 10;
-	}
 	// x_check_else:
-	else {
+	else 
 		bot.angle = 180;
-		bot.vel = -10;
-	}
 
+	bot.vel = 10;
 	// mtp_move_x_loop:
 	while (abs(bot.x - p_x) > p_rad - 3); // spin spin
 	// y_check:
