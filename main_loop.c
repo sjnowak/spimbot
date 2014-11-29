@@ -28,6 +28,7 @@ int main()
 
 		// main_delv_success_check:
 		if (j >= 0) {
+			// TODO should be able to solve puzzles before moving
 			move_to_planet(j); // TODO
 			solve_puzzles(j);  // TODO
 		}
