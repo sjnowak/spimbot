@@ -11,21 +11,20 @@ void move_to_planet(int i)
 	else 
 		bot.angle = 180;
 
+	// x_check_done:
 	bot.vel = 10;
 	// mtp_move_x_loop:
 	while (abs(bot.x - p_x) > p_rad - 3); // spin spin
 	// y_check:
 	bot.vel = 0;
 	
-	if (bot_y < p_y) {
+	if (bot_y < p_y) 
 		bot.angle = 90;
-		bot.vel = 10;
-	}
 	// y_check_else:
-	else {
+	else 
 		bot.angle = 270;
-		bot.vel = -10;
-	}
+	// y_check_done:
+	bot.vel = 10;
 		
 	// mtp_move_y_loop:
 	while (abs(bot.y - p_y) > p_rad - 3);
