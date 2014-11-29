@@ -29,7 +29,7 @@ int main()
 		// main_delv_success_check:
 		if (j >= 0) {
 			// TODO should be able to solve puzzles before moving
-			move_to_planet(j); // TODO
+			move_to_planet(j); 
 			solve_puzzles(j);  // TODO
 		}
 		// main_find_planet:
@@ -40,7 +40,7 @@ int main()
 				// at this point just find the first planet without a pending request for simplicity. 
 				// can be later be optimized to find the closest planet without a pending request if we have time
 				if (pending_requests[i] == 0) { 
-					move_to_planet(i);               // TODO
+					move_to_planet(i);               
 					// request puzzle for planets[i] // TODO
 				}
 				// main_find_planet_loop_inc:
