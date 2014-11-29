@@ -28,9 +28,9 @@ void move_to_planet(int i)
 		
 	// mtp_move_y_loop:
 	while (abs(bot.y - p_y) > p_rad - 3);
-	// mtp_land:
+	// mtp_move_y_done:
 	bot.vel = 0;
-
+	// mtp_land_loop:
 	while (LANDING_REQUEST == -1);
 	// mtp_ret:
 }
