@@ -80,7 +80,7 @@ move_to_planet:
 	li  $t5, 1
 	li  $t6, 10
 
-	bge $t4, $t1, mtp_x_check_else
+	bge $t4, $t1, x_check_else
 	sw  $0,  ANGLE
 	sw  $t5, ANGLE_CONTROL
 	j   x_check_done
@@ -97,10 +97,10 @@ mtp_x_check_done:
 
 mtp_move_x_loop:
 
+	lw  $t4, BOT_X
 	sub $a0, $t4, $t1
 	jal abs
 	ble $v0, $t3, mtp_move_x_done
-	lw  $t4, BOT_X
 	j mtp_move_x_loop
 
 mtp_move_x_done:
@@ -176,12 +176,16 @@ main:
 	or	$t4, $t4, 1		           # global interrupt enable
 	mtc0	 $t4, $12		       # set interrupt mask (Status register)
 
+	# all free
+
 	# free up some registers
 	sub $sp, $sp, __?
 	sw  $s0, 0($sp)
 	sw  $s1, 4($sp)
 	sw  $s2, 8($sp)
 	sw  $s3, 12($sp)
+
+	# all free
 
 main_loop:
 
@@ -206,8 +210,8 @@ main_delv_check_inc:
 main_delv_success_check:
 
 	blt $s1, 0, main_find_planet
-	# request planet info                  # TODO
-	# move_to_planet(j)                    # TODO
+	move $a0, $s1
+	jal  move_to_planet
 	# solve_puzzles(j)                     # TODO
 
 main_find_planet:
