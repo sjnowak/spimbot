@@ -80,7 +80,7 @@ move_to_planet:
 	li  $t5, 1
 	li  $t6, 10
 
-	bge $t4, $t1, x_check_else
+	bge $t4, $t1, mtp_x_check_else
 	sw  $0,  ANGLE
 	sw  $t5, ANGLE_CONTROL
 	j   x_check_done
@@ -97,10 +97,10 @@ mtp_x_check_done:
 
 mtp_move_x_loop:
 
-	lw  $t4, BOT_X
 	sub $a0, $t4, $t1
 	jal abs
 	ble $v0, $t3, mtp_move_x_done
+	lw  $t4, BOT_X
 	j mtp_move_x_loop
 
 mtp_move_x_done:
@@ -126,10 +126,10 @@ mtp_y_check_done:
 
 mtp_move_y_loop:
 
-	lw  $t4, BOT_Y
 	sub $a0, $t4, $t2
 	jal abs
 	ble $v0, $t3, mtp_move_y_done
+	lw  $t4, BOT_Y
 	j   mtp_move_y_loop
 
 mtp_move_y_done:
