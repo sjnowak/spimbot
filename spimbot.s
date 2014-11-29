@@ -228,8 +228,9 @@ main_find_planet_loop:
 	lw  $t0, 0($t0)                        # pending_requests[i]
 	bne $t0, 0, main_find_planet_loop_inc  # pending_requests[i] != 0
 
-	# move_to_planet(i)                    # TODO
-	# request planet from planet i         # TODO
+	move $a0, $s0
+	jal  move_to_planet
+	# request puzzle from planet i         # TODO
 
 main_find_planet_loop_inc:
 
