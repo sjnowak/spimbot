@@ -68,7 +68,7 @@ move_to_planet:
 	sw  $t0, PLANETS_REQUEST      # t0 = &planets[0]
 
 	li  $t1, 24
-	mul $t1, $a0
+	mul $t1, $t1, $a0
 
 	add $t0, $t0, $t1             # t0 = &planets[i]
 	lw  $t1, planet_x($t0)
