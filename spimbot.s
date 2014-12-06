@@ -189,8 +189,8 @@ move_to_planet:
 planet_info:
 	la $t2, planets 
 	sw $t2, PLANETS_REQUEST
-	mul $a0, $a0, planet_info_size
-	add $t3, $a0, $t2		# Start of planet i's structs in memory
+	mul $t8, $a0, planet_info_size
+	add $t3, $t8, $t2		# Start of planet i's structs in memory
 move_x:
 	lw $t4, 8($t3)			# Load planet i's x coordinate 
 	lw $t5, BOT_X			# Load the x coordinates of SPIMBot
@@ -235,8 +235,8 @@ landing:
 check:
 	la $t2, planets 
 	sw $t2, PLANETS_REQUEST
-	mul $a0, $a0, planet_info_size
-	add $t3, $a0, $t2
+	mul $t8, $a0, planet_info_size
+	add $t3, $t8, $t2
 	lw $t4, 8($t3)
 	lw $t5, 12($t3)
 	lw $t6, BOT_X
@@ -429,8 +429,8 @@ main_find_planet_loop:
 	la  $t0, pending_requests              # &pending_requests[0]
 	mul $t1, $s0, 4                        # i * 4
 	add $t0, $t1, $t0                      # &pending_requests[i]
-	lw  $t0, 0($t0)                        # pending_requests[i]
-	bne $t0, 0, main_find_planet_loop_inc  # pending_requests[i] != 0
+	lw  $t1, 0($t0)                        # pending_requests[i]
+	bne $t1, 0, main_find_planet_loop_inc  # pending_requests[i] != 0
 
 	move $a0, $s0
 	jal  move_to_planet
@@ -439,6 +439,12 @@ main_find_planet_loop:
 	mul $t3, $s0, 8192
 	add $t2, $t3, $t2        # &puzzles[i]
 	sw  $t2, PUZZLE_REQUEST
+	
+	la  $t0, pending_requests              # &pending_requests[0]
+	mul $t1, $s0, 4                        # i * 4
+	add $t0, $t1, $t0   
+	li  $t2, 1
+	sw  $t2, 0($t0)
 
 main_find_planet_loop_inc:
 
