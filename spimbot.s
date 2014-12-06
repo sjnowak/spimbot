@@ -1,4 +1,5 @@
-# syscall constants (none yet, add as needed)
+# syscall constants 
+PRINT_STRING_SYS = 4
 
 # movement memory-mapped I/O
 VELOCITY             = 0xffff0010
@@ -223,7 +224,7 @@ mtp_x_check_done:
 mtp_move_x_loop:
 
 	sub $a0, $t4, $t1
-	jal abs
+	abs $v0, $a0
 	ble $v0, $t3, mtp_move_x_done
 	lw  $t4, BOT_X
 	j mtp_move_x_loop
@@ -252,7 +253,7 @@ mtp_y_check_done:
 mtp_move_y_loop:
 
 	sub $a0, $t4, $t2
-	jal abs
+	abs $v0, $a0
 	ble $v0, $t3, mtp_move_y_done
 	lw  $t4, BOT_Y
 	j   mtp_move_y_loop
@@ -274,21 +275,6 @@ mtp_ret:
 	add $sp, $sp, 4
 
 	jr  $ra
-
-# absolute value ##################################################
-# 
-# argument $a0 value 
-# returns absolute value of $a0
-
-abs:
-
-	move $v0, $a0
-	bge  $v0, $0, abs_ret
-	mul  $v0, $v0, -1
-
-abs_ret:
-
-	jr $ra
 
 #  solve_puzzles ###################################################
 #
@@ -333,7 +319,7 @@ main:
 	# all free
 
 	# free up some registers
-	sub $sp, $sp, __?
+	sub $sp, $sp, 16
 	sw  $s0, 0($sp)
 	sw  $s1, 4($sp)
 	sw  $s2, 8($sp)
