@@ -185,6 +185,8 @@ my_strlen_done:
 
 move_to_planet:
 	sw $zero, TAKEOFF_REQUEST
+	li $t0, 1
+	sw $t0, VELOCITY
 
 planet_info:
 	la $t2, planets 
@@ -192,14 +194,14 @@ planet_info:
 	mul $t8, $a0, planet_info_size
 	add $t3, $t8, $t2		# Start of planet i's structs in memory
 move_x:
-	lw $t4, 8($t3)			# Load planet i's x coordinate 
+	lw $t4, planet_x($t3)			# Load planet i's x coordinate 
 	lw $t5, BOT_X			# Load the x coordinates of SPIMBot
 	beq $t5, $t4, move_y
 	blt $t5, $t4, go_right
 	bgt $t5, $t4, go_left
 move_y:
-	lw $t4, 12($t3)			# Load planet i's y coordinate
-	lw $t5, BOT_Y			# Load the y coordinates of SPIMBot
+	lw $t4, planet_y($t3)			# Load planet i's y coordinate
+	lw $t5, BOT_Y			       # Load the y coordinates of SPIMBot
 	beq $t5, $t4, landing
 	blt $t5, $t4, go_up
 	bgt $t5, $t4, go_down
@@ -227,7 +229,7 @@ go_down:
 	sw $t0, ANGLE
 	li $t0, 1
 	sw $t0, ANGLE_CONTROL
-	#add $t5, $t5, -1
+
 	j move_y
 
 landing:
@@ -244,6 +246,8 @@ check:
 	bne $t6, $t4, check
 	bne $t7, $t5, check
 	sw $zero, LANDING_REQUEST
+	li $t9, 7
+	lw $t9, LANDING_REQUEST
 	jr $ra
 
 #move_to_planet:
@@ -389,6 +393,9 @@ main:
 	sw  $s3, 12($sp)
 
 	# all free
+	
+	# TODO: request puzzles from starting planet
+	lw $t0, LANDING_REQUEST($0) # t0 index of current planet 
 
 main_loop:
 
@@ -518,6 +525,7 @@ delivery_interrupt:
 		bne $a0, 0, del_int_loop_inc    # delivered_puzzles[i] != 0
 
 		li  $t0, 1
+		la  $a0, delivered_puzzles
 		sw  $t0, 0($a0)                 # delivered_puzzles[i] = 0
 		j   del_int_loop_done           # break;
 
