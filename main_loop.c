@@ -15,6 +15,7 @@ int main()
 
 	// main_loop:
 	while (1) {
+		print "while"
 		int i = 0, j = -1;
 		// main_loop_delv_check:
 		while (i < 5) {
@@ -25,9 +26,10 @@ int main()
 			// main_loop_delv_inc:
 			i++;
 		}
-
+		
 		// main_delv_success_check:
 		if (j >= 0) {
+			print ""
 			// TODO should be able to solve puzzles before moving
 			move_to_planet(j); 
 			solve_puzzles(j);  // TODO
@@ -42,6 +44,7 @@ int main()
 				if (pending_requests[i] == 0) { 
 					move_to_planet(i);               
 					// request puzzle for planets[i] // TODO
+					break;
 				}
 				// main_find_planet_loop_inc:
 				i++;
