@@ -374,12 +374,9 @@ main:
 	mtc0	 $t4, $12		       # set interrupt mask (Status register)
 
 	# free up some registers
-	sub  $sp, $sp, 20
+	sub  $sp, $sp, 8
 	sw   $s0, 0($sp)
-	sw   $s1, 4($sp)
-	sw   $s2, 8($sp)
-	sw   $s3, 12($sp)
-	sw   $ra, 16($sp)
+	sw   $ra, 4($sp)
 
 	li   $s0, 0
 move_loop:
@@ -388,17 +385,14 @@ move_loop:
 	move $a0, $s0
 	jal  move_to_planet
 	add  $s0, $s0, 1
-	ble  $s0, 2, move_loop
+	ble  $s0, 2, move_loop # this part just keeps the index of the planet we are moving to between 0 and 2 (since the planets closer to the sun move faster we spend less time waiting to land)
 	li   $s0, 0
 	j move_loop
 
 	# restore regs and return
 	lw  $s0, 0($sp)
-	lw  $s1, 4($sp)
-	lw  $s2, 8($sp)
-	lw  $s3, 12($sp)
-	lw  $ra, 16($sp)
-	add $sp, $sp, 20
+	lw  $ra, 4($sp)
+	add $sp, $sp, 8
 
 	jr  $ra
 
