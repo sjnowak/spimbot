@@ -185,7 +185,7 @@ my_strlen_done:
 
 move_to_planet:
 	sw $zero, TAKEOFF_REQUEST
-	li $t0, 1
+	li $t0, 10
 	sw $t0, VELOCITY
 
 planet_info:
@@ -349,26 +349,30 @@ check:
 # return: nothing
 solve_puzzles: 
 
-	sub $sp $sp, 4
+	sub $sp $sp, 12
 	sw  $ra, 0($sp)
+	sw  $s0, 4($sp)
+	sw  $s1, 8($sp)
 
 	la  $t0, puzzles
 	mul $t1, $a0, 8192
-	add $t0, $t0, $t1   # &puzzles[i]
-	lw  $s0, 0($t0)     # puzzles[i]->head
+	add $s1, $t0, $t1   # &puzzles[i]
+	lw  $s0, 0($s1)     # puzzles[i]->head
 
 solve_loop:
 
 	lw	$a0, str($s0)
 	lw	$a1, str + 4($s0)
-	jal	puzzle_solve
+	jal	puzzle_solver							#sjnowak2 - was this supposed to be puzzle_solver
 	sw	$v0, solution($s0)
 	lw	$s0, next($s0)       # puzzles[i]->next
 	bne	$s0, 0, solve_loop
 
-	sw	$t0, SOLVE_REQUEST
+	sw	$s1, SOLVE_REQUEST						#would t0 get preserved?
 
 	lw  $ra, 0($sp)
+	lw  $s0, 4($sp)
+	lw  $s1, 8($sp)
 	add $sp, $sp, 4
 	jr  $ra
 
@@ -410,7 +414,7 @@ main_delv_check:                           # chcek if any puzzles have been deli
 	mul $t1, $s0, 4                  # i * 4
 	add $t0, $t1, $t0                # &delivered_puzzles[i]
 	lw  $t0, 0($t0)                  # delivered_puzzles[i]
-	beq $t0, 0, main_delv_check_inc  # !delivered_puzzles[i]
+	beq $t0, 1, main_delv_success_check  # !delivered_puzzles[i] 					#Changed this part to 1 from 0 and made it go to success check.
 
 main_delv_check_inc:
 
@@ -460,7 +464,7 @@ main_find_planet_loop_inc:
 
 # interrupt handler ###############################################
 .kdata				           # interrupt handler data (separated just for readability)
-chunkIH:	.space 12	       # space for three registers 
+chunkIH:	.space 16	       # space for three registers 
 	
 non_intrpt_str:	.asciiz "Non-interrupt exception\n"
 unhandled_str:	.asciiz "Unhandled interrupt type\n"
@@ -474,6 +478,7 @@ interrupt_handler:
 	sw	$a0, 0($k0)		    # Get some free registers                  
 	sw  $v0, 4($k0)   
 	sw  $t0, 8($k0)
+	sw  $t1, 12($k0)
 
 	mfc0	$k0, $13		# Get Cause register                       
 	srl	$a0, $k0, 2                
@@ -525,8 +530,10 @@ delivery_interrupt:
 		bne $a0, 0, del_int_loop_inc    # delivered_puzzles[i] != 0
 
 		li  $t0, 1
-		la  $a0, delivered_puzzles
-		sw  $t0, 0($a0)                 # delivered_puzzles[i] = 0
+		mul $t1, $v0, 4                 # i * 4
+		la  $a0, delivered_puzzles      # &delivered_puzzles[0]
+		add $t1, $a0, $t1               # &delivered_puzzles[i]
+		sw  $t0, 0($a0)                 # delivered_puzzles[i] = 1
 		j   del_int_loop_done           # break;
 
 	del_int_loop_inc:
@@ -552,6 +559,7 @@ done:
 	lw	$a0, 0($k0)		    # Restore saved registers
 	lw  $v0, 4($k0)
 	lw  $t0, 8($k0)
+	lw  $t1, 12($k0)
 
 .set noat
 	move	$at, $k1		# Restore $at
