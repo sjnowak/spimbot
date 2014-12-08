@@ -52,6 +52,13 @@ delivered_puzzles: .word 0 0 0 0 0   # array indicating planets at which a puzzl
 puzzles: .space 40960                # 8192 * 5 --- array of puzzles
 
 .text
+puts:
+	li	$v0, 4
+	syscall
+	li	$v0, 11
+	li	$a0, '\n'
+	syscall
+	jr	$ra
 
 # puzzle_solver ##################################################
 # 
@@ -250,99 +257,6 @@ check:
 	lw $t9, LANDING_REQUEST
 	jr $ra
 
-#move_to_planet:
-#
-#	sub $sp, $sp, 4
-#	sw  $ra, 0($sp)
-#
-#	sw  $0,  TAKEOFF_REQUEST      # take off
-#
-#	la  $t0, planets
-#	sw  $t0, PLANETS_REQUEST      # t0 = &planets[0]
-#
-#	li  $t1, 24
-#	mul $t1, $t1, $a0
-#
-#	add $t0, $t0, $t1             # t0 = &planets[i]
-#	lw  $t1, planet_x($t0)
-#	lw  $t2, planet_y($t0)
-#	lw  $t3, planet_radius($t0)
-#	sub $t3, $t3, 3               # p_rad - 3
-#	lw  $t4, BOT_X
-#
-#	li  $t5, 1
-#	li  $t6, 10
-#
-#	bge $t4, $t1, mtp_x_check_else
-#	sw  $0,  ANGLE
-#	sw  $t5, ANGLE_CONTROL
-#	j   mtp_x_check_done
-#
-#mtp_x_check_else:
-#
-#	li  $t7, 180
-#	sw  $t7, ANGLE
-#	sw  $t5, ANGLE_CONTROL
-#
-#mtp_x_check_done:
-#
-#	sw  $t6, VELOCITY
-#
-#mtp_move_x_loop:
-#
-#	sub $a0, $t4, $t1
-#	abs $v0, $a0
-#	ble $v0, $t3, mtp_move_x_done
-#	lw  $t4, BOT_X
-#	j mtp_move_x_loop
-#
-#mtp_move_x_done:
-#
-#	sw  $0, VELOCITY
-#
-#	lw  $t4, BOT_Y
-#	bge $t4, $t2, mtp_y_check_else
-#	li  $t7, 90
-#	sw  $t7, ANGLE
-#	sw  $t5, ANGLE_CONTROL	
-#	j   mtp_y_check_done
-#
-#mtp_y_check_else:
-#
-#	li  $t7, 270
-#	sw  $t7, ANGLE
-#	sw  $t5, ANGLE_CONTROL
-#
-#mtp_y_check_done:
-#
-#	sw  $t6, VELOCITY
-#
-#mtp_move_y_loop:
-#
-#	sub $a0, $t4, $t2
-#	abs $v0, $a0
-#	ble $v0, $t3, mtp_move_y_done
-#	lw  $t4, BOT_Y
-#	j   mtp_move_y_loop
-#
-#mtp_move_y_done:
-#	
-#	sw  $0, VELOCITY
-#
-#mtp_land_loop:
-#
-#	sw  $t0,  LANDING_REQUEST
-#	lw  $t0, LANDING_REQUEST
-#	bge $t0, $0, mtp_ret
-#	j mtp_land_loop
-#
-#mtp_ret:
-#
-#	lw  $ra, 0($sp)
-#	add $sp, $sp, 4
-#
-#	jr  $ra
-
 #  solve_puzzles ###################################################
 #
 # arguments: a0: index
@@ -354,18 +268,19 @@ solve_puzzles:
 	sw  $s0, 4($sp)
 	sw  $s1, 8($sp)
 
-	la  $t0, puzzles
-	mul $t1, $a0, 8192
-	add $s1, $t0, $t1   # &puzzles[i]
+	la  $t0, puzzles    # &puzzles[0]
+	mul $t1, $a0, 8192  # i * 8196
+	add $s1, $t0, $t1   # &puzzles[i]->head
 	lw  $s0, 0($s1)     # puzzles[i]->head
 
 solve_loop:
 
-	lw	$a0, str($s0)
-	lw	$a1, str + 4($s0)
-	jal	puzzle_solver							#sjnowak2 - was this supposed to be puzzle_solver
+	la	$a0, 0($s0) # str1
+	la	$a1, 4($s0) # str2
+	#jal puts
+	jal	puzzle_solver							
 	sw	$v0, solution($s0)
-	lw	$s0, next($s0)       # puzzles[i]->next
+	la	$s0, next($s0)       # puzzles[i]->next
 	bne	$s0, 0, solve_loop
 
 	sw	$s1, SOLVE_REQUEST						#would t0 get preserved?
@@ -373,7 +288,7 @@ solve_loop:
 	lw  $ra, 0($sp)
 	lw  $s0, 4($sp)
 	lw  $s1, 8($sp)
-	add $sp, $sp, 4
+	add $sp, $sp, 12
 	jr  $ra
 
 # main ############################################################
@@ -399,7 +314,7 @@ main:
 	# all free
 	
 	# TODO: request puzzles from starting planet
-	lw $t0, LANDING_REQUEST($0) # t0 index of current planet 
+	#lw $t0, LANDING_REQUEST($0) # t0 index of current planet 
 
 main_loop:
 
@@ -414,7 +329,9 @@ main_delv_check:                           # chcek if any puzzles have been deli
 	mul $t1, $s0, 4                  # i * 4
 	add $t0, $t1, $t0                # &delivered_puzzles[i]
 	lw  $t0, 0($t0)                  # delivered_puzzles[i]
-	beq $t0, 1, main_delv_success_check  # !delivered_puzzles[i] 					#Changed this part to 1 from 0 and made it go to success check.
+	beq $t0, 0, main_delv_check_inc  # !delivered_puzzles[i] #Changed this part to 1 from 0 and made it go to success check.
+	move $s1, $s0        # j = i
+	j    main_delv_success_check
 
 main_delv_check_inc:
 
@@ -443,12 +360,12 @@ main_find_planet_loop:
 	lw  $t1, 0($t0)                        # pending_requests[i]
 	bne $t1, 0, main_find_planet_loop_inc  # pending_requests[i] != 0
 
-	move $a0, $s0
+	move $a0, $s0                          
 	jal  move_to_planet
 
 	la  $t2, puzzles
 	mul $t3, $s0, 8192
-	add $t2, $t3, $t2        # &puzzles[i]
+	add $t2, $t3, $t2                      # &puzzles[i]
 	sw  $t2, PUZZLE_REQUEST
 	
 	la  $t0, pending_requests              # &pending_requests[0]
@@ -456,6 +373,7 @@ main_find_planet_loop:
 	add $t0, $t1, $t0   
 	li  $t2, 1
 	sw  $t2, 0($t0)
+	j   main_loop
 
 main_find_planet_loop_inc:
 
