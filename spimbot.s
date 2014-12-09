@@ -66,7 +66,7 @@ puzzle_solve:
 	move $s0, $a0
 	move $s1, $a1
 
-	move $a0, $s0 		# possibly not needed? And do I use lw?
+	move $a0, $s0
 	jal my_strlen
 	move $s3, $v0 		
 	
