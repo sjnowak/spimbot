@@ -56,95 +56,86 @@ puzzles_received: .space 4           # puzzles received flag
 # args: $a0 = str1, $a1 = str2
 # returns: $v0 = # rotations of str1 to produce str2
 puzzle_solve:
-	sub	$sp, $sp, 20
-	sw	$ra, 0($sp)		# save $ra and free up 4 $s registers for
-	sw	$s0, 4($sp)		# str1
-	sw	$s1, 8($sp)		# str2
-	sw	$s2, 12($sp)		# length
-	sw	$s3, 16($sp)		# i
+	sub $sp, $sp, 24
+	sw $ra, 0($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+	sw $s2, 12($sp)
+	sw $s3, 16($sp)
+	sw $s4, 20($sp)
+	move $s0, $a0
+	move $s1, $a1
 
-	move	$s0, $a0		# str1
-	move	$s1, $a1		# str2
-
-	jal	my_strlen
-
-	move 	$s2, $v0		# length
-	li	$s3, 0			# i = 0
+	move $a0, $s0 		# possibly not needed? And do I use lw?
+	jal my_strlen
+	move $s3, $v0 		
+	
+	li $s2, 0 		# i = 0
 ps_loop:
-	bgt	$s3, $s2, ps_return_minus_1
-	move	$a0, $s0		# str1
-	move	$a1, $s1		# str2
-	jal	my_strcmp
-	beq	$v0, $0, ps_return_i
-	
-	move	$a0, $s1		# str2
-	jal	rotate_string_in_place_fast
-	add	$s3, $s3, 1		# i ++
-	j	ps_loop
+	bge $s2, $s3, ps_done
+	move $a0, $s0		
+	move $a1, $s1
+	jal my_strcmp		
+	move $s4, $v0
+	bne $s4, 0, ps_rs
+	move $v0, $s2
+	j	ps_return
+ps_rs:
+	move $a0, $s1 	
+	jal rotate_string_in_place_fast 
+	add $s2, $s2, 1
+	j ps_loop
+ps_done:
+	li $v0, -1
+ps_return:
+	lw $ra, 0($sp)
+	lw $s0, 4($sp)
+	lw $s1, 8($sp)
+	lw $s2, 12($sp)
+	lw $s3, 16($sp)
+	lw $s4, 20($sp)
+	add $sp, $sp, 24
+	jr $ra
 
-ps_return_minus_1:
-	li	$v0, -1
-	j	ps_done
-
-ps_return_i:
-	move	$v0, $s3
-
-ps_done:	
-	lw	$ra, 0($sp)		# restore registers and return
-	lw	$s0, 4($sp)
-	lw	$s1, 8($sp)
-	lw	$s2, 12($sp)
-	lw	$s3, 16($sp)
-	add	$sp, $sp, 20
-	jr	$ra
-
-   
-# rotate_string_in_place_fast ##################################
-#
-# args: $a0 = string
-# returns: string rotated by 1
 rotate_string_in_place_fast:
-	sub	$sp, $sp, 8
-	sw	$ra, 0($sp)
-	sw	$a0, 4($sp)
-
-	jal	my_strlen
-	move	$t0, $v0	# length
-	lw	$a0, 4($sp)
-	lb	$t1, 0($a0)	# was_first = str[0]
-
-	div	$t3, $t0, 4	# length_in_ints = length / 4;
-
-	li	$t2, 0		# i = 0
-	move	$a1, $a0	# making copy of 'str' for use in first loop
-rsipf_loop1:
-	bge	$t2, $t3, rsipf_loop2_prologue
-	lw	$t4, 0($a1)	# unsigned first_word = str_as_array_of_ints[i]
-	lw	$t5, 4($a1)	# unsigned second_word = str_as_array_of_ints[i+1]
-	srl	$t6, $t4, 8	# (first_word >> 8)
-	sll	$t7, $t5, 24	# (second_word << 24)
-	or	$t7, $t7, $t6	# combined_word = (first_word >> 8) | (second_word << 24)
-	sw	$t7, 0($a1)	# str_as_array_of_ints[i] = combined_word
-	add	$t2, $t2, 1	# i ++
-	add	$a1, $a1, 4	# str_as_array_of_inst ++
-	j	rsipf_loop1		
-
-rsipf_loop2_prologue:
-	mul	$t2, $t3, 4
-	add	$t2, $t2, 1	# i = length_in_ints*4 + 1
-rsipf_loop2:
-	bge	$t2, $t0, rsipf_done2
-	add	$t3, $a0, $t2	# &str[i]
-	lb	$t4, 0($t3)	# char c = str[i]
-	sb	$t4, -1($t3)	# str[i - 1] = c
-	add	$t2, $t2, 1	# i ++
-	j	rsipf_loop2		
+	sub $sp, $sp, 8
+	sw $ra, 0($sp)
+	sw $a0, 4($sp)
 	
-rsipf_done2:
-	add	$t3, $a0, $t0	# &str[length]
-	sb	$t1, -1($t3)	# str[length - 1] = was_first
-	lw	$ra, 0($sp)
-	add	$sp, $sp, 8
+	jal my_strlen
+	move $t0, $v0 				# length
+	lw $a0, 4($sp)
+	lb $t1, 0($a0) 				# was_first = str[0]
+	
+	div $t6, $t0, 4 			# length_in_ints
+	li $t2, 0
+rsf_loop1:
+	bge $t2, $t6, rsf_set_i
+	mul $t3, $t2, 4
+	add $t3, $a0, $t3			
+	lw $t4, 0($t3)				# first_word load ([i])
+	lw $t5, 4($t3)				# second_word load ([i+1])
+	srl $t4, $t4, 8				# first_word right shift by 8
+	sll $t5, $t5, 24			# second_word left shift by 24
+	or $t4, $t4, $t5			# combined_word
+	sw $t4, 0($t3)				# store word
+	add $t2, $t2, 1 			# i++
+	j rsf_loop1
+rsf_set_i:
+	mul $t2, $t6, 4
+	add $t2, $t2, 1
+rsf_loop2:
+	bge $t2, $t0, rsf_done
+	add $t3, $a0, $t2 			# str[i]
+	lb $t4, 0($t3)				# char c = str[i]
+	sb $t4, -1($t3)				# str[i-1] = c
+	add $t2, $t2, 1				# i++
+	j rsf_loop2
+rsf_done:
+	add $t0, $a0, $t0
+	sb $t1, -1($t0)
+	lw $ra, 0($sp)
+	add $sp, $sp, 8	
 	jr	$ra
 
 # my_strcmp ##################################################
